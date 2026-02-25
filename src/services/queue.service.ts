@@ -24,5 +24,5 @@ export const startQueue = async () => {
 
 export const triggerManualSync = async () => {
     console.log('Triggering manual analytics sync...');
-  return await analyticsQueue.add('daily-sync', { manual: true });
+    return await analyticsQueue.add('daily-sync', { manual: true });
 };

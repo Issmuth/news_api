@@ -9,6 +9,7 @@ import {
 } from '../controllers/article.controller';
 import { authenticate, optionalAuthenticate, requireRole } from '../middleware/auth';
 import { validate } from '../middleware/validation';
+import { viewCooldown } from '../middleware/viewCooldown';
 import { z } from 'zod';
 
 const router = Router();
@@ -25,7 +26,7 @@ const articleSchema = z.object({
 
 router.get('/', getPublicFeed);
 router.get('/me', authenticate, requireRole('author'), getMyArticles);
-router.get('/:id', optionalAuthenticate, getArticleById);
+router.get('/:id', optionalAuthenticate, viewCooldown, getArticleById);
 
 // All routes here require authentication and 'author' role
 router.use(authenticate, requireRole('author'));

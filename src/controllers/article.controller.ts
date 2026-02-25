@@ -76,18 +76,22 @@ export const getArticleById = async (req: AuthRequest, res: Response) => {
 
   // TRIGGER: Non-blocking engagement tracking
   // We send the response to the user immediately, then handle the log
-  setImmediate(async () => {
-    try {
-      await db.insert(readLogs).values({
-        articleId: article.id,
-        readerId: req.user?.sub || null,
-      });
-      console.log(`Background Log: Article ${id} view recorded.`);
-    } catch (err) {
-      console.error("Failed to log read event:", err);
-    }
-  });
 
+  if (!(req as any).skipLogging) {
+    setImmediate(async () => {
+      try {
+        await db.insert(readLogs).values({
+          articleId: article.id,
+          readerId: req.user?.sub || null,
+        });
+        console.log(`Background Log: Article ${id} view recorded.`);
+      } catch (err) {
+        console.error("Failed to log read event:", err);
+      }
+    });
+  }
+   
+ 
   // 3. Return the response immediately
   return res.status(200).json(baseResponse(true, "Article retrieved", article));
 };
