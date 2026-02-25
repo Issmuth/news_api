@@ -41,7 +41,7 @@ A production-grade News Management API built with **Node.js**, **TypeScript**, a
 1.  **Clone the repository**:
     ```bash
     git clone <repo-url>
-    cd news-api
+    cd news-api/backend
     ```
 
 2.  **Install dependencies**:
