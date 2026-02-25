@@ -4,9 +4,10 @@ import {
   getMyArticles, 
   updateArticle, 
   deleteArticle,
-  getPublicFeed
+  getPublicFeed,
+  getArticleById
 } from '../controllers/article.controller';
-import { authenticate, requireRole } from '../middleware/auth';
+import { authenticate, optionalAuthenticate, requireRole } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { z } from 'zod';
 
@@ -23,6 +24,8 @@ const articleSchema = z.object({
 });
 
 router.get('/', getPublicFeed);
+
+router.get('/:id',optionalAuthenticate, getArticleById);
 
 // All routes here require authentication and 'author' role
 router.use(authenticate, requireRole('author'));

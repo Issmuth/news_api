@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
-import { articles, users } from '../db/schema';
+import { articles, users, readLogs } from '../db/schema';
 import { eq, and, isNull, ilike, or, desc } from 'drizzle-orm';
 import { AuthRequest } from '../middleware/auth';
 import { baseResponse, paginatedResponse } from '../utils/response';
 
+// Returns Public Feed
 export const getPublicFeed = async (req: Request, res: Response) => {
   const { category, author, q } = req.query;
   const page = parseInt(req.query.page as string) || 1;
@@ -55,6 +56,43 @@ export const getPublicFeed = async (req: Request, res: Response) => {
   );
 };
 
+// Fetch an article by ID (with Read Tracking)
+export const getArticleById = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+
+  // Fetch the article
+  const [article] = await db.select()
+    .from(articles)
+    .where(and(
+      eq(articles.id, id as string),
+      eq(articles.status, 'Published'),
+      isNull(articles.deletedAt)
+    ))
+    .limit(1);
+
+  if (!article) {
+    return res.status(404).json(baseResponse(false, "Article not found"));
+  }
+
+  // TRIGGER: Non-blocking engagement tracking
+  // We send the response to the user immediately, then handle the log
+  setImmediate(async () => {
+    try {
+      await db.insert(readLogs).values({
+        articleId: article.id,
+        readerId: req.user?.sub || null,
+      });
+      console.log(`Background Log: Article ${id} view recorded.`);
+    } catch (err) {
+      console.error("Failed to log read event:", err);
+    }
+  });
+
+  // 3. Return the response immediately
+  return res.status(200).json(baseResponse(true, "Article retrieved", article));
+};
+
+// Create an article
 export const createArticle = async (req: AuthRequest, res: Response) => {
   const { title, content, category, status } = req.body;
   const authorId = req.user!.sub; // From JWT middleware
@@ -70,6 +108,7 @@ export const createArticle = async (req: AuthRequest, res: Response) => {
   return res.status(201).json(baseResponse(true, "Article created", article));
 };
 
+// Retrieve authored articles
 export const getMyArticles = async (req: AuthRequest, res: Response) => {
   const authorId = req.user!.sub;
   const page = parseInt(req.query.page as string) || 1;
@@ -86,6 +125,7 @@ export const getMyArticles = async (req: AuthRequest, res: Response) => {
   );
 };
 
+// Delete an Article
 export const deleteArticle = async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string; 
   const authorId = req.user!.sub;
@@ -105,6 +145,7 @@ export const deleteArticle = async (req: AuthRequest, res: Response) => {
   return res.status(200).json(baseResponse(true, "Article soft-deleted successfully"));
 };
 
+// Update an Article
 export const updateArticle = async (req: AuthRequest, res: Response) => {
     const { id } = req.params as { id: string };
     const authorId = req.user!.sub;
