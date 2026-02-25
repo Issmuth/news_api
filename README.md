@@ -59,7 +59,7 @@ A production-grade News Management API built with **Node.js**, **TypeScript**, a
     CREATE DATABASE news_api;
     ```
 3.  **Environment Variables**:
-    Create a `.env` file in the root directory. Use the following values:
+    Create a `.env` file in the /backend directory. Use the following values:
     <br>
     ```env
     PORT=3000
@@ -81,11 +81,11 @@ A production-grade News Management API built with **Node.js**, **TypeScript**, a
 1.  **Clone the repository**:
     ```bash
     git clone <repo-url>
-    cd news-api
+    cd news-api/backend
     ```
 
 3.  **Environment Variables**:
-    Create a `.env` file in the root directory. Use the following values:
+    Create a `.env` file in the /backend directory. Use the following values:
     <br>
     ```env
     PORT=3000
@@ -155,3 +155,4 @@ if encountering errors make sure to check the following:
 
 - Advances performance metrics beyond just reader count such as, read time aggregation, unique versus new readers stat etc...
 
+- make sure you're in the /backend directory when running or testing the app
