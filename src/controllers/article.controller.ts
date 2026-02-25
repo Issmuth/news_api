@@ -1,9 +1,59 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { db } from '../db';
-import { articles } from '../db/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { articles, users } from '../db/schema';
+import { eq, and, isNull, ilike, or, desc } from 'drizzle-orm';
 import { AuthRequest } from '../middleware/auth';
 import { baseResponse, paginatedResponse } from '../utils/response';
+
+export const getPublicFeed = async (req: Request, res: Response) => {
+  const { category, author, q } = req.query;
+  const page = parseInt(req.query.page as string) || 1;
+  const size = parseInt(req.query.size as string) || 10;
+
+  const conditions = [
+    eq(articles.status, 'Published'),
+    isNull(articles.deletedAt)
+  ];
+
+  // category filter
+  if (category) {
+    conditions.push(eq(articles.category, category as string));
+  }
+  
+  // search keyword 
+  if (q) {
+    conditions.push(
+      or(
+        ilike(articles.title, `%${q}%`),
+        ilike(articles.content, `%${q}%`)
+      ) as any
+    );
+  }
+
+  const query = db.select({
+      id: articles.id,
+      title: articles.title,
+      category: articles.category,
+      authorName: users.name,
+      createdAt: articles.createdAt
+    })
+    .from(articles)
+    .innerJoin(users, eq(articles.authorId, users.id));
+
+  if (author) {
+    conditions.push(ilike(users.name, `%${author}%`));
+  }
+
+  const results = await query
+    .where(and(...conditions))
+    .orderBy(desc(articles.createdAt))
+    .limit(size)
+    .offset((page - 1) * size);
+
+  return res.status(200).json(
+    paginatedResponse(true, "News feed retrieved", results, page, size, results.length)
+  );
+};
 
 export const createArticle = async (req: AuthRequest, res: Response) => {
   const { title, content, category, status } = req.body;

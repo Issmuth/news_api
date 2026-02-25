@@ -2,39 +2,58 @@ import request from 'supertest';
 import app from '../app';
 import jwt from 'jsonwebtoken';
 
-const TEST_SECRET = process.env.JWT_SECRET || 'secret'; 
+const TEST_SECRET = process.env.JWT_SECRET || 'secret';
+const mockToken = jwt.sign({ sub: 'user-uuid', role: 'author' }, TEST_SECRET);
 
+// Combined Mock for all Article interactions
 jest.mock('../db', () => ({
   db: {
-    insert: jest.fn().mockReturnThis(),
-    values: jest.fn().mockReturnThis(),
-    returning: jest.fn().mockResolvedValue([{ 
-      id: 'article-123', 
-      title: 'Test News', 
-      authorId: 'user-uuid' 
-    }]),
     select: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),
+    innerJoin: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockResolvedValue([]),
+    orderBy: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    offset: jest.fn().mockResolvedValue([
+      { id: '1', title: 'Feed Article', authorName: 'Ismael' }
+    ]),
+    insert: jest.fn().mockReturnThis(),
+    values: jest.fn().mockReturnThis(),
+    returning: jest.fn().mockResolvedValue([{ id: 'new-123', title: 'New Post' }]),
   },
 }));
 
-const mockToken = jwt.sign({ sub: 'user-uuid', role: 'author' }, TEST_SECRET);
+describe('Article & Feed Endpoints', () => {
+  
+  describe('GET /articles (Public Feed)', () => {
+    it('should return 200 and list articles without a token', async () => {
+      const res = await request(app).get('/api/articles');
+      
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.Success).toBe(true);
+      expect(res.body.Object).toBeInstanceOf(Array);
+    });
+  });
 
-describe('Article Endpoints', () => {
-  it('should allow author to create article', async () => {
-    const res = await request(app)
-      .post('/api/articles')
-      .set('Authorization', `Bearer ${mockToken}`)
-      .send({
-        title: 'Test News',
-        content: 'This is a test article content.',
-        category: 'Tech',
-        status: 'Published'
-      });
+  describe('POST /articles (Author Only)', () => {
+    it('should return 401 if no token is provided', async () => {
+      const res = await request(app).post('/api/articles').send({ title: 'Title' });
+      expect(res.statusCode).toEqual(401);
+    });
 
-    expect(res.statusCode).toEqual(201);
-    expect(res.body.Success).toBe(true);
+    it('should return 201 if a valid author token is provided', async () => {
+      const res = await request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${mockToken}`)
+        .send({
+          title: 'Valid Title',
+          content: 'Valid content with enough length',
+          category: 'Tech',
+          status: 'Published'
+        });
+
+      expect(res.statusCode).toEqual(201);
+      expect(res.body.Object.title).toBe('New Post');
+    });
   });
 });

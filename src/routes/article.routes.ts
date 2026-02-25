@@ -3,7 +3,8 @@ import {
   createArticle, 
   getMyArticles, 
   updateArticle, 
-  deleteArticle 
+  deleteArticle,
+  getPublicFeed
 } from '../controllers/article.controller';
 import { authenticate, requireRole } from '../middleware/auth';
 import { validate } from '../middleware/validation';
@@ -20,6 +21,8 @@ const articleSchema = z.object({
     status: z.enum(['Draft', 'Published']).default('Draft')
   })
 });
+
+router.get('/', getPublicFeed);
 
 // All routes here require authentication and 'author' role
 router.use(authenticate, requireRole('author'));
