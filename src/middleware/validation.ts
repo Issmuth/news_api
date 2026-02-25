@@ -43,11 +43,11 @@ export const validate = (schema: z.ZodSchema) =>
         );
         
         return res.status(400).json(
-          baseResponse(false, "Validation failed [cite: 164]", null, errorMessages)
+          baseResponse(false, "Validation failed", null, errorMessages)
         );
       }
       return res.status(500).json(
-        baseResponse(false, "Internal server error [cite: 164]", null, ["Unknown validation error"])
+        baseResponse(false, "Internal server error", null, ["Unknown validation error"])
       );
     }
 };
