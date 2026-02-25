@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "node dist/server.js",
     "db:push": "drizzle-kit push",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "keywords": [],
   "author": "",

@@ -1,8 +1,25 @@
 services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postdbadmin
+      POSTGRES_DB: news_api
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6378:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -15,8 +32,13 @@ services:
       - "3000:3000"
     environment:
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://postgres:postdbadmin@localhost:5432/news_api
+      - DATABASE_URL=postgresql://postgres:postdbadmin@db:5432/news_api
       - JWT_SECRET=your_secret
     depends_on:
+      db:
+        condition: service_healthy
       redis:
         condition: service_healthy
+
+volumes:
+  postgres_data:
