@@ -24,14 +24,13 @@ const articleSchema = z.object({
 });
 
 router.get('/', getPublicFeed);
-
-router.get('/:id',optionalAuthenticate, getArticleById);
+router.get('/me', authenticate, requireRole('author'), getMyArticles);
+router.get('/:id', optionalAuthenticate, getArticleById);
 
 // All routes here require authentication and 'author' role
 router.use(authenticate, requireRole('author'));
 
 router.post('/', validate(articleSchema), createArticle);
-router.get('/me', getMyArticles);
 router.put('/:id', validate(articleSchema), updateArticle);
 router.delete('/:id', deleteArticle);
 

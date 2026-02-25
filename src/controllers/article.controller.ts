@@ -116,7 +116,7 @@ export const getMyArticles = async (req: AuthRequest, res: Response) => {
 
   const myArticles = await db.select()
     .from(articles)
-    .where(eq(articles.authorId, authorId)) // Authors can see their own even if Draft/Deleted
+    .where(eq(articles.authorId, authorId))
     .limit(size)
     .offset((page - 1) * size);
 
