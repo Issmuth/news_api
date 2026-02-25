@@ -138,10 +138,20 @@ The test suite covers Auth, Article CRUD, Engagement Tracking, and Analytics log
 npm test
 ```
 
-### Troubleshooting
+### 🧰 Troubleshooting
 
 if encountering errors make sure to check the following:
 
 - make sure your Redis is running or you will encounter errors once the server starts.
 - Make sure there isn't another app running on the same port.
 - to avoid conflict with local installation one to one port mapping has been changed for Redis and PostgreSQL to 6378 and 5433 respectively, make sure these ports are not being used by any process.
+
+
+## ➡️ Next Steps and Reccomendations
+
+- Additonal trigger for the analytics engine to sync data on author dashboard request, to avoid displaying stale data.
+
+- Email verification steps to avoid invalid, non-existent fradulent email sign-ups.
+
+- Advances performance metrics beyond just reader count such as, read time aggregation, unique versus new readers stat etc...
+
